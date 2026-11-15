@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Speed Dating inclusif</title>
+<style>
+:root{box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);--bg:#faf6f4;--card:#fff;--tx:#2a1f24;--mu:#7b6a72;--ac:#d6336c;--ac2:#fde4ee;--bd:#ecdfe4;--ok:#2b8a3e}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#1c1519;--card:#2a2026;--tx:#f5eaef;--mu:#b19ba5;--ac:#f06595;--ac2:#4a2736;--bd:#40303a;--ok:#69db7c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#1c1519;--card:#2a2026;--tx:#f5eaef;--mu:#b19ba5;--ac:#f06595;--ac2:#4a2736;--bd:#40303a;--ok:#69db7c;color-scheme:dark}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.45 system-ui,-apple-system,"Segoe UI",sans-serif}
+main{max-width:900px;margin:0 auto;padding:16px}
+h1{font-size:1.5rem;margin:.2em 0}h2{font-size:1.1rem;margin:0 0 .6em}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:14px;margin:12px 0}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:end}
+label{font-size:.8rem;color:var(--mu);display:flex;flex-direction:column;gap:3px}
+label.in{flex-direction:row;align-items:center;gap:6px;color:var(--tx);font-size:.85rem}
+input,select{font:inherit;padding:8px 10px;border:1px solid var(--bd);border-radius:8px;background:var(--bg);color:var(--tx);min-width:0}
+input[type=number]{width:84px}input[type=checkbox]{width:auto}
+button{font:inherit;border:0;border-radius:10px;padding:10px 16px;background:var(--ac);color:#fff;cursor:pointer;font-weight:600}
+button.sec{background:var(--ac2);color:var(--ac)}button:disabled{opacity:.4}
+.chip{display:inline-block;padding:3px 10px;margin:3px 3px 0 0;border:1px solid var(--ac);background:var(--ac2);color:var(--ac);border-radius:99px;font-size:.82rem}
+.sl{display:flex;justify-content:space-between;align-items:center;gap:8px;padding:8px 0;border-top:1px solid var(--bd);flex-wrap:wrap}
+.timer{font-size:4rem;font-weight:800;text-align:center;font-variant-numeric:tabular-nums;color:var(--ac);line-height:1.1}
+.badge{background:var(--ac);color:#fff;border-radius:8px;padding:2px 10px;font-weight:700}
+.mu{color:var(--mu);font-size:.85rem;margin:.3em 0}
+a.sms{display:inline-block;background:var(--ok);color:#fff;text-decoration:none;padding:7px 12px;border-radius:9px;font-weight:600;font-size:.9rem}
+.hide{display:none}
+.alert{background:var(--ac2);border:1px solid var(--ac);border-radius:10px;padding:10px;margin:8px 0;font-weight:600}
+.match{background:var(--ac2);border-radius:8px;padding:6px 10px;margin:4px 0;font-weight:600}
+</style>
+</head>
+<body>
+<main>
+<h1>💘 Speed dating inclusif</h1>
+
+<section id="setup">
+ <div class="card">
+  <h2>1. Importer les réponses du questionnaire</h2>
+  <p class="mu">Dans Google Forms : Réponses → icône Sheets → Fichier → Télécharger → .csv. Les données restent dans votre navigateur : rien n’est envoyé ni enregistré.</p>
+  <div class="row"><input type="file" id="file" accept=".csv,text/csv,text/plain"><button class="sec" id="demo">Voir un exemple</button></div>
+ </div>
+ <div id="cfg" class="card hide">
+  <h2>2. Rôle de chaque question</h2>
+  <p class="mu">Les questions du « Pré-questionnaire – Projet de Speed Dating » sont reconnues automatiquement (à corriger si besoin). Le poids règle l’importance de chaque question dans le score. Les personnes ayant répondu « Non » aux questions de participation sont décochées d’office (case modifiable ci-dessous).</p>
+  <div id="cols"></div>
+ </div>
+ <div id="pcard" class="card hide">
+  <h2>3. Participants et réglages</h2>
+  <div class="row">
+   <label>Durée d’un tour (min)<input id="dur" type="number" min="1" max="30" value="5"></label>
+   <label>Temps de déplacement (min)<input id="trans" type="number" min="0" max="10" value="1"></label>
+   <label>Nombre de tours<input id="rounds" type="number" min="1" max="30" value="4"></label>
+   <label>Écart d’âge max<select id="gap"><option value="99">Aucune limite</option><option value="2" selected>2 tranches</option><option value="1">1 tranche</option><option value="0">Même tranche</option></select></label>
+   <label class="in"><input type="checkbox" id="sep" checked>Ne jamais associer « amical seulement » et « amoureux seulement »</label>
+  </div>
+  <p class="mu">🔒 Par sécurité, une personne de moins de 18 ans n’est jamais associée à une personne d’une autre tranche d’âge. Si vous utilisez les groupes A/B, seuls A et B se rencontrent (vide = tout le monde).</p>
+  <p class="mu">Saisissez le numéro de la personne accompagnante : c’est lui qui recevra les SMS. Le « repère » (ex. prénom, couleur du badge) est facultatif. Cochez « Table fixe » pour une personne qui ne peut pas se déplacer librement : elle garde la même table pendant tout l’événement et ce sont les autres qui viennent à elle (deux personnes à table fixe ne sont jamais associées).</p>
+  <div class="row" style="margin:8px 0"><label>Mode test : mon numéro<input id="testphone" type="tel" placeholder="06 12 34 56 78"></label><button class="sec" id="tp">Appliquer à tous</button></div>
+  <div id="plist"></div>
+  <div class="row" style="margin-top:10px"><button id="start">Générer le planning</button><span class="mu" id="err"></span></div>
+ </div>
+</section>
+
+<section id="event" class="hide">
+ <div class="card">
+  <div class="row" style="justify-content:space-between;align-items:center"><h2 id="rtitle" style="margin:0"></h2><button class="sec" id="back">← Modifier</button></div>
+  <div class="mu" id="phase" style="text-align:center;font-weight:700"></div>
+  <div class="timer" id="clock">05:00</div>
+  <div class="row" style="justify-content:center">
+   <button id="go">Démarrer</button><button class="sec" id="pause">Pause</button><button class="sec" id="skip">Étape suivante</button><button class="sec" id="rec">Choix mutuels</button>
+  </div>
+  <div id="endmsg" class="alert hide">⏰ Fin du tour ! Envoyez les SMS du tour suivant ci-dessous : les participants se déplacent.</div>
+ </div>
+ <div class="card"><h2>Tables</h2><div id="tables"></div></div>
+ <div class="card"><h2>⚡ Envoi automatique des SMS</h2>
+  <div class="row"><label>Mot de passe organisateur<input id="pw" type="password" autocomplete="off"></label><button class="sec" id="login">Connecter</button></div>
+  <label class="in" style="margin-top:8px"><input type="checkbox" id="auto" checked>Envoyer automatiquement les SMS à chaque nouveau tour</label>
+  <p class="mu" id="autost">Non connecté : utilisez les boutons manuels ci-dessous.</p>
+ </div>
+ <div class="card"><h2>📱 SMS aux accompagnants</h2>
+  <label class="in"><input type="checkbox" id="incl" checked>Inclure les points communs (idées de sujets) dans le SMS</label>
+  <p class="mu">Chaque bouton ouvre votre application SMS avec le message prêt à envoyer. Si rien ne s’ouvre (certains navigateurs bloquent les liens SMS dans une page intégrée), utilisez « Copier le message » et collez-le dans vos SMS : le numéro et le texte sont affichés sous chaque ligne.</p>
+  <div id="sms"></div>
+ </div>
+ <div class="card hide" id="recap"><h2>Choix mutuels</h2>
+  <p class="mu">Cochez les personnes que chacun souhaite revoir (recueillies auprès des participants ou de leurs accompagnants).</p>
+  <div id="recapb"></div><h2 style="margin-top:14px">💞 Correspondances</h2><div id="mutual" class="mu">Aucune pour l’instant.</div>
+ </div>
+</section>
+</main>
+
+<script>
+const $=id=>document.getElementById(id);
+const esc=s=>String(s).replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const BAD=/pr[ée]f[èe]re ne pas|aucun|ne sais pas|^autre|^non$/i;
+const TYPES={ignore:"Ignorer",age:"Tranche d’âge",commun:"Points communs (choix multiples)",accord:"Même réponse (choix unique)",intention:"Type de rencontre (amical / amoureux)",filtre:"Participation (exclut si « Non »)",info:"Besoin à signaler",phone:"Téléphone"};
+let C=[],P=[],S=[],cur=0,left=0,iv=null,ph="ready",DUR=300,TR=60;const W=new Set();
+const nm=p=>p.alias?`${p.code} (${p.alias})`:p.code;
+const fmt=s=>String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0");
+const PRE=[[/horodat|timestamp/i,"ignore"],[/suggestion|id[ée]es pour/i,"ignore"],[/tranche d.âge|\bage\b/i,"age",2],[/t[ée]l[ée]?phone|portable/i,"phone"],
+ [/accompagnement|besoin|accessib|handicap/i,"info",1,"accompagnement"],[/int[ée]ress[ée].*speed|envisageriez/i,"filtre"],
+ [/type de rencontre/i,"intention",3],[/format|ambiance/i,"accord",1.5],[/combien de temps/i,"accord",.5],[/d[ée]couvrir chez|qualit[ée]s|donnerait envie/i,"commun",1]];
+const detect=h=>{const p=PRE.find(x=>x[0].test(h));return p?{t:p[1],w:p[2]??1,l:p[3]||""}:{t:"commun",w:1,l:""}};
+const cl=s=>String(s||"").trim().replace(/[.!\s]+$/,"");
+function autoOn(){P.forEach(p=>p.on=!C.some((c,i)=>c.t=="filtre"&&/^non\b/i.test((p.v[i]||"").trim())))}
+const ageIdx=s=>{s=s.toLowerCase();if(/moins/.test(s))return 0;const m=s.match(/\d+/);if(!m)return -1;const n=+m[0];return n<=18?1:n<=26?2:n<=36?3:n<=46?4:5};
+
+function csv(t){const l=t.split("\n")[0],d=(l.match(/;/g)||[]).length>(l.match(/,/g)||[]).length?";":",";
+ const r=[];let w=[],f="",q=false;
+ for(let i=0;i<t.length;i++){const c=t[i];
+  if(q){if(c=='"'){if(t[i+1]=='"'){f+='"';i++}else q=false}else f+=c}
+  else if(c=='"')q=true;else if(c==d){w.push(f);f=""}else if(c=="\n"){w.push(f);r.push(w);w=[];f=""}else if(c!="\r")f+=c}
+ if(f||w.length){w.push(f);r.push(w)}return r}
+
+function load(rows){
+ const d=rows.slice(1).filter(r=>r.some(x=>x.trim()));
+ if(!d.length){alert("Aucune réponse trouvée dans ce fichier.");return}
+ C=rows[0].map(h=>({h,...detect(h)}));
+ const k=C.findIndex(c=>c.t=="phone");
+ P=d.map((r,i)=>({id:i,code:"P"+String(i+1).padStart(2,"0"),alias:"",phone:k>=0?(r[k]||""):"",g:"",v:r}));
+ autoOn();$("rounds").value=Math.max(1,Math.min(6,P.filter(p=>p.on).length-1));
+ $("cfg").classList.remove("hide");$("pcard").classList.remove("hide");draw();
+}
+function draw(){
+ $("cols").innerHTML="";
+ C.forEach((c,i)=>{const d=document.createElement("div");d.className="sl";
+  d.innerHTML=`<span style="flex:1;min-width:180px">${esc(c.h)}</span>
+  <select>${Object.entries(TYPES).map(([k,v])=>`<option value="${k}" ${c.t==k?"selected":""}>${v}</option>`).join("")}</select>
+  <label class="in">Poids<input type="number" min="0" max="5" step="0.5" value="${c.w}"></label>`;
+  const[s,n]=d.querySelectorAll("select,input");s.onchange=()=>{c.t=s.value;autoOn();draw()};n.onchange=()=>c.w=+n.value||0;$("cols").appendChild(d)});
+ $("plist").innerHTML="";
+ P.forEach(p=>{const d=document.createElement("div");d.className="sl";
+  d.innerHTML=`<label class="in" style="width:70px"><input type="checkbox">${p.code}</label>
+  <input data-k="alias" placeholder="Repère" value="${esc(p.alias)}" style="width:120px">
+  <input data-k="phone" type="tel" placeholder="Tél. accompagnant" value="${esc(p.phone)}" style="width:160px">
+  <select data-k="g"><option value="">Groupe —</option><option>A</option><option>B</option></select>
+  <label class="in"><input type="checkbox" data-f>Table fixe</label>`;
+  d.querySelectorAll("[data-k]").forEach(e=>{e.value=p[e.dataset.k];e.oninput=e.onchange=()=>p[e.dataset.k]=e.value});const cb=d.querySelector("[type=checkbox]");cb.checked=p.on;cb.onchange=()=>p.on=cb.checked;const fx=d.querySelector("[data-f]");fx.checked=!!p.fixed;fx.onchange=()=>p.fixed=fx.checked;
+  $("plist").appendChild(d)});
+}
+$("file").onchange=e=>{const f=e.target.files[0];if(!f)return;const r=new FileReader();r.onload=()=>load(csv(String(r.result).replace(/^\uFEFF/,"")));r.readAsText(f)};
+$("tp").onclick=()=>{const v=$("testphone").value;P.forEach(p=>p.phone=v);draw()};
+$("demo").onclick=()=>{
+ const pick=(a,n)=>a.sort(()=>Math.random()-.5).slice(0,n).join(", ");
+ const one=a=>a[Math.floor(Math.random()*a.length)];
+ const rows=[["Horodateur","1. Seriez-vous intéressé(e) par la participation à un speed dating ?","3. Qu’est-ce qui vous donnerait envie de participer ?","4. Quel type de rencontre recherchez-vous ?","5. Qu’aimeriez-vous découvrir chez une personne ?","6. Quelles qualités appréciez-vous chez quelqu’un ?","7. Quel format préféreriez-vous ?","9. Quelle ambiance vous conviendrait le mieux ?","10. Dans quelle tranche d’âge vous situez-vous ?","11. Auriez-vous besoin d’un accompagnement particulier pour participer ?"]];
+ for(let i=0;i<12;i++)rows.push(["",i==11?"Non, cela ne m’intéresse pas.":"Oui, beaucoup !",pick(["Rencontrer de nouvelles personnes.","Faire des rencontres amicales.","Partager un moment convivial.","Sortir de mon quotidien.","Découvrir une nouvelle activité."],2),one(["Une rencontre amicale.","Une rencontre amoureuse.","Les deux.","Je ne sais pas encore."]),pick(["Sa personnalité.","Ses passions.","Son humour.","Ses goûts.","Ses projets."],2),pick(["La gentillesse.","L’humour.","La sincérité.","L’écoute.","Le respect.","La confiance."],3),one(["Des rencontres individuelles de quelques minutes.","Je n’ai pas de préférence."]),one(["Une ambiance calme et intimiste.","Une ambiance conviviale et décontractée.","Peu importe."]),["18 à 25 ans.","26 à 35 ans.","36 à 45 ans.","46 à 55 ans."][i%4],one(["Oui.","Non.","Non.","Je préfère en discuter avec les organisateurs."])]);
+ load(rows)};
+
+function attrs(p){
+ const ai=C.findIndex(c=>c.t=="age");p.age=ai>=0?ageIdx(p.v[ai]||""):-1;
+ p.sets=C.map((c,i)=>{const m=new Map();
+  if(c.t=="commun"||c.t=="info")(p.v[i]||"").split(/\s*[,;]\s*/).map(cl).filter(s=>s&&!BAD.test(s)).forEach(s=>m.set(s.toLowerCase(),s));return m});
+ p.one=C.map((c,i)=>cl(p.v[i]));
+ const ii=C.findIndex(c=>c.t=="intention"),iv2=ii>=0?p.one[ii].toLowerCase():"";
+ p.int=/deux/.test(iv2)?"B":/amoureu/.test(iv2)?"R":/amical/.test(iv2)?"A":"?";
+ p.info=C.flatMap((c,i)=>c.t=="info"?[...p.sets[i].values()].map(v=>c.l?c.l+" : "+v:v):[]);
+}
+function allowed(a,b){
+ if((a.age===0)!==(b.age===0))return false;
+ if(a.fixed&&b.fixed)return false;
+ if(a.g&&b.g&&a.g===b.g)return false;
+ if($("sep").checked&&((a.int=="A"&&b.int=="R")||(a.int=="R"&&b.int=="A")))return false;
+ if(a.age>=0&&b.age>=0&&Math.abs(a.age-b.age)>+$("gap").value)return false;
+ return true}
+function score(a,b){
+ const ac=C.find(c=>c.t=="age"),com=[];let s=0;
+ if(ac&&a.age>=0&&b.age>=0){const d=Math.abs(a.age-b.age);s+=ac.w*(d==0?1:d==1?.5:0)}
+ const J=/pas de pr[ée]f[ée]rence|peu importe|ne sais pas/i;
+ C.forEach((c,i)=>{
+  if(c.t=="commun")a.sets[i].forEach((o,k)=>{if(b.sets[i].has(k)){s+=c.w;com.push(o)}});
+  if(c.t=="accord"){const x=a.one[i],y=b.one[i];if(x&&y){if(x==y)s+=c.w;else if(J.test(x)||J.test(y))s+=c.w/2}}
+  if(c.t=="intention"){if(a.int==b.int&&a.int!="?")s+=c.w;else if(a.int=="?"||b.int=="?")s+=c.w/2;else if(a.int=="B"||b.int=="B")s+=c.w*.75}
+ });
+ return{s,com}}
+
+function plan(){
+ P.forEach(attrs);const R=Math.max(1,+$("rounds").value||1),all=[];
+ const L=P.filter(p=>p.on);for(let i=0;i<L.length;i++)for(let j=i+1;j<L.length;j++)if(allowed(L[i],L[j])){const r=score(L[i],L[j]);all.push({a:L[i],b:L[j],s:r.s,com:r.com,k:i+"-"+j})}
+ let best=[],bs=-1;
+ for(let t=0;t<40;t++){const met=new Set(),rs=[];let tot=0;
+  for(let r=0;r<R;r++){
+   const cand=all.filter(e=>!met.has(e.k)).map(e=>({e,s:e.s+Math.random()*.9})).sort((x,y)=>y.s-x.s),used=new Set(),pa=[];
+   cand.forEach(({e})=>{if(!used.has(e.a.id)&&!used.has(e.b.id)){used.add(e.a.id);used.add(e.b.id);met.add(e.k);pa.push(e);tot+=e.s+1}});
+   if(!pa.length)break;rs.push(pa)}
+  if(tot>bs){bs=tot;best=rs}}
+ const FX=L.filter(p=>p.fixed);FX.forEach((p,i)=>p.ft=i+1);
+ S=best.map(pa=>{const u=new Set(pa.flatMap(e=>[e.a.id,e.b.id]));let nt=FX.length;
+  return{pairs:pa.map(e=>{const f=e.a.fixed?e.a:e.b.fixed?e.b:null;return{a:e.a,b:e.b,t:f?f.ft:++nt,fx:f,com:e.com}}).sort((x,y)=>x.t-y.t),rest:L.filter(p=>!u.has(p.id))}});
+}
+$("start").onclick=()=>{
+ if(P.filter(p=>p.on).length<2){$("err").textContent="Il faut au moins 2 participants inclus.";return}plan();
+ if(!S.length){$("err").textContent="Aucune rencontre possible avec ces règles (élargissez l’écart d’âge ou les groupes).";return}
+ $("err").textContent="";DUR=Math.max(1,+$("dur").value||5)*60;TR=Math.max(0,+$("trans").value||0)*60;
+ cur=0;ph="ready";left=DUR;W.clear();sentRound=-1;$("recap").classList.add("hide");
+ $("setup").classList.add("hide");$("event").classList.remove("hide");show();
+};
+$("back").onclick=()=>{stop();$("event").classList.add("hide");$("setup").classList.remove("hide")};
+
+function msg(p,pa){
+ if(!pa)return `Speed dating – Tour ${cur+1}/${S.length} : ${nm(p)} ${p.fixed?"reste à sa TABLE "+p.ft+" (pause pour ce tour)":"est en pause pour ce tour"}.`;
+ const o=pa.a.id==p.id?pa.b:pa.a;
+ return `Speed dating – Tour ${cur+1}/${S.length} : ${nm(p)} ${pa.fx&&pa.fx.id==p.id?"reste à la TABLE "+pa.t+" : "+nm(o)+" vient vous rejoindre":"va à la TABLE "+pa.t+", avec "+nm(o)}.`+($("incl").checked&&pa.com.length?` Points communs : ${pa.com.join(", ")}.`:"");
+}
+function show(){
+ const R=S[cur];
+ $("rtitle").textContent=`Tour ${cur+1} / ${S.length}`;
+ $("phase").textContent={ready:"Prêt à démarrer",move:"Déplacement vers les tables",round:"Discussion en cours",end:"Terminé"}[ph];
+ $("clock").textContent=fmt(Math.max(left,0));
+ $("go").textContent=ph=="ready"?"Démarrer":"Reprendre";
+ $("tables").innerHTML=R.pairs.map(x=>`<div class="sl" style="display:block"><span class="badge">Table ${x.t}${x.fx?" 🪑":""}</span> <b>${esc(nm(x.a))}</b> ↔ <b>${esc(nm(x.b))}</b>
+  <div>${x.com.length?x.com.map(t=>`<span class="chip">${esc(t)}</span>`).join(""):'<span class="mu">Pas de point commun</span>'}</div>
+  ${[x.a,x.b].filter(p=>p.info.length).map(p=>`<div class="mu">🛈 ${esc(nm(p))} : ${esc(p.info.join(", "))}</div>`).join("")}</div>`).join("")
+  +(R.rest.length?`<p class="mu">En pause : ${R.rest.map(p=>esc(nm(p))).join(", ")}</p>`:"");
+ $("sms").innerHTML=P.filter(p=>p.on).map(p=>{
+  const pa=R.pairs.find(x=>x.a.id==p.id||x.b.id==p.id),n=p.phone.replace(/[^\d+]/g,"");
+  return `<div class="sl"><span><b>${esc(nm(p))}</b> <span class="mu">${pa?"→ Table "+pa.t:"pause"+(p.fixed?" · reste table "+p.ft:"")}</span></span>`+
+  (n?`<a class="sms" target="_blank" rel="noopener" href="sms:${n}?&body=${encodeURIComponent(msg(p,pa))}">Envoyer SMS</a><button class="sec" data-m="${esc(msg(p,pa))}">Copier le message</button>`:`<span class="mu">numéro manquant</span>`)+`<div class="mu" style="width:100%">${esc(msg(p,pa))}</div></div>`}).join("");
+}
+$("sms").onclick=e=>{const b=e.target.closest("button[data-m]");if(!b)return;const t=b.dataset.m;
+ const ok=()=>{b.textContent="Copié ✓"};
+ function fb(){const a=document.createElement("textarea");a.value=t;document.body.appendChild(a);a.select();try{document.execCommand("copy");ok()}catch(x){}a.remove()}
+ try{navigator.clipboard.writeText(t).then(ok,fb)}catch(x){fb()}};
+$("incl").onchange=show;
+let AUTO=null,sentRound=-1;
+$("login").onclick=async()=>{const pw=$("pw").value;
+ try{const r=await fetch("/api/status",{headers:{"x-organizer-password":pw}});if(!r.ok)throw 0;const j=await r.json();AUTO=pw;
+  $("autost").textContent=j.live?"✅ Connecté : envoi réel par Twilio.":"🧪 Connecté en mode test : aucun SMS réel n’est envoyé."}
+ catch(e){AUTO=null;$("autost").textContent="❌ Serveur injoignable ou mot de passe incorrect."}};
+async function autoSend(){const R=S[cur];
+ const m=P.filter(p=>p.on&&p.phone.trim()).map(p=>({to:p.phone,body:msg(p,R.pairs.find(x=>x.a.id==p.id||x.b.id==p.id))}));
+ $("autost").textContent=`Envoi de ${m.length} SMS (tour ${cur+1})…`;
+ try{const r=await fetch("/api/sms",{method:"POST",headers:{"Content-Type":"application/json","x-organizer-password":AUTO},body:JSON.stringify({messages:m})});const j=await r.json();
+  if(!r.ok)throw new Error(j.error);
+  $("autost").textContent=`Tour ${cur+1} : ${j.sent} SMS envoyé(s)`+(j.failed.length?`, ${j.failed.length} échec(s) : ${j.failed.map(f=>f.to+" ("+f.error+")").join(" ; ")}`:"")+(j.dry?" (mode test)":"")+"."}
+ catch(e){$("autost").textContent="❌ Échec de l’envoi automatique : utilisez les boutons manuels ci-dessous."}}
+function stop(){clearInterval(iv);iv=null}
+function beep(){try{const c=new(window.AudioContext||window.webkitAudioContext)(),o=c.createOscillator();o.connect(c.destination);o.frequency.value=880;o.start();setTimeout(()=>{o.stop();c.close()},700)}catch(e){}try{navigator.vibrate&&navigator.vibrate([300,100,300])}catch(e){}}
+function next(){
+ if(ph=="ready"){ph=TR>0?"move":"round";left=TR>0?TR:DUR}
+ else if(ph=="move"){ph="round";left=DUR;$("endmsg").classList.add("hide")}
+ else if(cur<S.length-1){cur++;ph=TR>0?"move":"round";left=TR>0?TR:DUR;$("endmsg").classList.remove("hide")}
+ else{stop();ph="end";left=0;recap()}
+ show();if(AUTO&&$("auto").checked&&ph!="end"&&sentRound!=cur){sentRound=cur;autoSend()}
+}
+$("go").onclick=()=>{
+ if(iv||ph=="end")return;if(ph=="ready")next();
+ iv=setInterval(()=>{left--;$("clock").textContent=fmt(Math.max(left,0));if(left<=0){beep();next()}},1000);
+};
+$("pause").onclick=stop;
+$("skip").onclick=()=>{if(ph!="end")next()};
+$("rec").onclick=recap;
+
+function recap(){
+ if(!$("recap").classList.contains("hide"))return;
+ $("recap").classList.remove("hide");
+ $("recapb").innerHTML=S.flatMap((r,i)=>r.pairs.map(x=>({x,i}))).map(({x,i})=>
+  `<div class="sl"><span>T${i+1} · ${esc(nm(x.a))} ↔ ${esc(nm(x.b))}</span><span class="row">
+  <label class="in"><input type="checkbox" data-w="${x.a.id}>${x.b.id}">${esc(nm(x.a))} veut revoir</label>
+  <label class="in"><input type="checkbox" data-w="${x.b.id}>${x.a.id}">${esc(nm(x.b))} veut revoir</label></span></div>`).join("");
+ document.querySelectorAll("[data-w]").forEach(c=>c.onchange=()=>{c.checked?W.add(c.dataset.w):W.delete(c.dataset.w);mutual()});
+}
+function mutual(){
+ const m=[...W].filter(k=>{const[a,b]=k.split(">");return a<b?W.has(b+">"+a):false}).map(k=>{const[a,b]=k.split(">").map(Number);return[P[a],P[b]]});
+ $("mutual").innerHTML=m.length?m.map(([a,b])=>`<div class="match">💞 ${esc(nm(a))} ↔ ${esc(nm(b))}</div>`).join(""):"Aucune pour l’instant.";
+}
+</script>
+</body>
+</html>
